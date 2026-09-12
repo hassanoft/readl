@@ -43,14 +43,10 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
 
   Future<void> _load() async {
     try {
-      final controller = ref.read(libraryControllerProvider);
-
-      // Le texte est déjà stocké dans PdfDocumentModel
       _text = widget.document.text;
 
       if (_text.trim().isEmpty) {
-        _error =
-            'Aucun texte extractible. Ce PDF est peut-être scanné.';
+        _error = 'Aucun texte extractible. Ce PDF est peut-être scanné.';
       }
     } catch (_) {
       _error = 'Impossible d’extraire le texte de ce PDF.';
@@ -67,6 +63,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   void dispose() {
     _tts.removeListener(_refresh);
     _tts.dispose();
+    _pdf.dispose();
     super.dispose();
   }
 
@@ -122,7 +119,6 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                 const LinearProgressIndicator(
                   minHeight: 2,
                 ),
-
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 4),
@@ -134,19 +130,13 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                     ),
                   ),
                 ),
-
               Row(
                 children: [
                   IconButton(
-                    onPressed: _text.trim().isEmpty
-                        ? null
-                        : _tts.stop,
-                    icon: const Icon(
-                      Icons.stop_circle_outlined,
-                    ),
+                    onPressed: _text.trim().isEmpty ? null : _tts.stop,
+                    icon: const Icon(Icons.stop_circle_outlined),
                     tooltip: 'Arrêter',
                   ),
-
                   Expanded(
                     child: Text(
                       _tts.speaking
@@ -159,13 +149,11 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                       ),
                     ),
                   ),
-
                   IconButton.filled(
                     onPressed: _text.trim().isEmpty
                         ? null
                         : () async {
-                            if (_tts.speaking &&
-                                !_tts.paused) {
+                            if (_tts.speaking && !_tts.paused) {
                               await _tts.pause();
                             } else if (_tts.paused) {
                               await _tts.resume();
@@ -180,7 +168,6 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                     ),
                     tooltip: 'Lire / Pause',
                   ),
-
                   PopupMenuButton<double>(
                     onSelected: _tts.setRate,
                     itemBuilder: (_) => [
@@ -213,7 +200,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   }
 
   void _showText() {
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (_) {
