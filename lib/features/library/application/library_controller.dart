@@ -10,25 +10,26 @@ import 'package:syncfusion_flutter_pdf/pdf.dart';
 import '../domain/pdf_document.dart';
 
 class LibraryController extends ChangeNotifier {
-  static const String _storageKey = 'readl_library_v1';
+  static const _storageKey = 'readl_library_v1';
 
   final List<PdfDocumentModel> _documents = [];
 
   bool _loading = false;
   String? _error;
 
-  List<PdfDocumentModel> get documents => List.unmodifiable(_documents);
+  List<PdfDocumentModel> get documents =>
+      List.unmodifiable(_documents);
 
   bool get loading => _loading;
 
   String? get error => _error;
 
-  /// Initialisation appelée par library_providers.dart.
+  /// Initialise et restaure la bibliothèque locale.
   Future<void> init() async {
     await load();
   }
 
-  /// Restaure la bibliothèque sauvegardée.
+  /// Restaure les PDF enregistrés localement.
   Future<void> load() async {
     _loading = true;
     _error = null;
@@ -38,29 +39,31 @@ class LibraryController extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final raw = prefs.getString(_storageKey);
 
-      _documents.clear();
-
-      if (raw != null && raw.isNotEmpty) {
-        final decoded = jsonDecode(raw);
-
-        if (decoded is List) {
-          for (final item in decoded) {
-            if (item is Map) {
-              final document = PdfDocumentModel.fromJson(
-                Map<String, dynamic>.from(item),
-              );
-
-              if (document.path.isNotEmpty &&
-                  await File(document.path).exists()) {
-                _documents.add(document);
-              }
-            }
-          }
-        }
+      if (raw == null || raw.isEmpty) {
+        return;
       }
 
+      final decoded = jsonDecode(raw);
+
+      if (decoded is! List) {
+        throw const FormatException('Bibliothèque invalide.');
+      }
+
+      _documents
+        ..clear()
+        ..addAll(
+          decoded
+              .whereType<Map<String, dynamic>>()
+              .map(PdfDocumentModel.fromJson),
+        );
+
+      // Supprime les fichiers qui n'existent plus sur l'appareil.
+      _documents.removeWhere(
+        (doc) => !File(doc.path).existsSync(),
+      );
+
       await _save();
-    } catch (e) {
+    } catch (_) {
       _error = 'Impossible de restaurer la bibliothèque.';
     } finally {
       _loading = false;
@@ -68,41 +71,27 @@ class LibraryController extends ChangeNotifier {
     }
   }
 
-  /// Importe un seul PDF.
-  ///
-  /// file_picker v12 retourne directement List<PlatformFile>.
+  /// Importe un fichier PDF depuis l'appareil.
   Future<PdfDocumentModel?> importPdf() async {
     _error = null;
     _loading = true;
     notifyListeners();
 
     try {
-      final files = await FilePicker.pickFiles(
+      final picked = await FilePicker.platform.pickFile(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
-        allowMultiple: false,
+        withData: false,
       );
 
-      if (files.isEmpty) {
+      if (picked == null) {
         return null;
       }
 
-      final picked = files.first;
-
       final sourcePath = picked.path;
 
-      if (sourcePath == null || sourcePath.isEmpty) {
-        throw Exception(
-          'Le chemin du fichier PDF est inaccessible.',
-        );
-      }
-
-      final sourceFile = File(sourcePath);
-
-      if (!await sourceFile.exists()) {
-        throw Exception(
-          'Le fichier PDF sélectionné n’existe plus.',
-        );
+      if (sourcePath == null) {
+        throw Exception('Fichier inaccessible.');
       }
 
       final appDir = await getApplicationDocumentsDirectory();
@@ -111,23 +100,19 @@ class LibraryController extends ChangeNotifier {
         '${appDir.path}/pdfs',
       );
 
-      await pdfDir.create(
-        recursive: true,
-      );
+      await pdfDir.create(recursive: true);
 
-      final id = DateTime.now()
-          .microsecondsSinceEpoch
-          .toString();
+      final id = '${DateTime.now().microsecondsSinceEpoch}';
 
       final destination = File(
         '${pdfDir.path}/$id.pdf',
       );
 
-      final copiedFile = await sourceFile.copy(
+      final copied = await File(sourcePath).copy(
         destination.path,
       );
 
-      final bytes = await copiedFile.readAsBytes();
+      final bytes = await copied.readAsBytes();
 
       final pdf = PdfDocument(
         inputBytes: bytes,
@@ -135,15 +120,13 @@ class LibraryController extends ChangeNotifier {
 
       try {
         final pageCount = pdf.pages.count;
-
         final extractor = PdfTextExtractor(pdf);
-
         final buffer = StringBuffer();
 
-        for (var page = 0; page < pageCount; page++) {
+        for (var page = 1; page <= pageCount; page++) {
           final pageText = extractor.extractText(
-            startPageIndex: page,
-            endPageIndex: page,
+            startPageIndex: page - 1,
+            endPageIndex: page - 1,
           );
 
           if (pageText.trim().isNotEmpty) {
@@ -152,32 +135,24 @@ class LibraryController extends ChangeNotifier {
           }
         }
 
-        final document = PdfDocumentModel(
+        final doc = PdfDocumentModel(
           id: id,
           name: picked.name,
-          path: copiedFile.path,
-          size: await copiedFile.length(),
+          path: copied.path,
+          size: await copied.length(),
           pageCount: pageCount,
           text: buffer.toString().trim(),
-          lastPage: 1,
-          isFavorite: false,
-          createdAt: DateTime.now(),
         );
 
         _documents.removeWhere(
-          (existing) => existing.path == document.path,
+          (d) => d.name == doc.name && d.path == doc.path,
         );
 
-        _documents.insert(
-          0,
-          document,
-        );
+        _documents.insert(0, doc);
 
         await _save();
 
-        notifyListeners();
-
-        return document;
+        return doc;
       } finally {
         pdf.dispose();
       }
@@ -196,10 +171,10 @@ class LibraryController extends ChangeNotifier {
     int page,
   ) async {
     final index = _documents.indexWhere(
-      (document) => document.id == id,
+      (d) => d.id == id,
     );
 
-    if (index == -1) {
+    if (index < 0) {
       return;
     }
 
@@ -207,7 +182,7 @@ class LibraryController extends ChangeNotifier {
 
     final safePage = page.clamp(
       1,
-      document.pageCount < 1 ? 1 : document.pageCount,
+      document.pageCount,
     );
 
     _documents[index] = document.copyWith(
@@ -215,30 +190,24 @@ class LibraryController extends ChangeNotifier {
     );
 
     await _save();
-
     notifyListeners();
   }
 
-  /// Alias pratique pour les écrans qui utilisent update().
+  /// Met à jour la page de lecture.
   Future<void> update(
     String id,
     int page,
   ) async {
-    await updateProgress(
-      id,
-      page,
-    );
+    await updateProgress(id, page);
   }
 
-  /// Active/désactive le favori.
-  Future<void> toggleFavorite(
-    String id,
-  ) async {
+  /// Ajoute ou retire un PDF des favoris.
+  Future<void> toggleFavorite(String id) async {
     final index = _documents.indexWhere(
-      (document) => document.id == id,
+      (d) => d.id == id,
     );
 
-    if (index == -1) {
+    if (index < 0) {
       return;
     }
 
@@ -249,43 +218,33 @@ class LibraryController extends ChangeNotifier {
     );
 
     await _save();
-
     notifyListeners();
   }
 
-  /// Supprime un document de la bibliothèque et du stockage local.
-  Future<void> delete(
-    String id,
-  ) async {
+  /// Supprime un PDF de la bibliothèque.
+  Future<void> delete(String id) async {
     final index = _documents.indexWhere(
-      (document) => document.id == id,
+      (d) => d.id == id,
     );
 
-    if (index == -1) {
+    if (index < 0) {
       return;
     }
 
     final document = _documents.removeAt(index);
 
     try {
-      final file = File(document.path);
-
-      if (await file.exists()) {
-        await file.delete();
-      }
+      await File(document.path).delete();
     } catch (_) {
-      // Le document est quand même retiré de la bibliothèque.
+      // Le fichier peut déjà avoir été supprimé.
     }
 
     await _save();
-
     notifyListeners();
   }
 
-  /// Retourne un document par son ID.
-  PdfDocumentModel? getById(
-    String id,
-  ) {
+  /// Recherche un document par son identifiant.
+  PdfDocumentModel? getById(String id) {
     for (final document in _documents) {
       if (document.id == id) {
         return document;
@@ -296,9 +255,7 @@ class LibraryController extends ChangeNotifier {
   }
 
   /// Retourne le texte extrait d'un document.
-  String readText(
-    String id,
-  ) {
+  String readText(String id) {
     return getById(id)?.text ?? '';
   }
 
@@ -316,9 +273,7 @@ class LibraryController extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
 
     final data = _documents
-        .map(
-          (document) => document.toJson(),
-        )
+        .map((document) => document.toJson())
         .toList();
 
     await prefs.setString(
