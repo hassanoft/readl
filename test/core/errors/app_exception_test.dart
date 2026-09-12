@@ -8,16 +8,25 @@ void main() {
   group('describeError', () {
     test('retourne le message tel quel pour AppException', () {
       const exception = AppException('Message personnalisé.');
-      expect(describeError(exception), 'Message personnalisé.');
+
+      expect(
+        describeError(exception),
+        'Message personnalisé.',
+      );
     });
 
     test('traduit les identifiants invalides en français', () {
       const error = AuthException('Invalid login credentials');
-      expect(describeError(error), 'Email ou mot de passe incorrect.');
+
+      expect(
+        describeError(error),
+        'Email ou mot de passe incorrect.',
+      );
     });
 
     test('traduit un compte déjà existant en français', () {
       const error = AuthException('User already registered');
+
       expect(
         describeError(error),
         'Un compte existe déjà avec cet email.',
@@ -25,7 +34,8 @@ void main() {
     });
 
     test('traduit une absence de réseau en français', () {
-      final error = SocketException('Failed host lookup');
+      const error = SocketException('Failed host lookup');
+
       expect(
         describeError(error),
         'Aucune connexion internet détectée. '
