@@ -1,0 +1,27 @@
+name: READL iOS
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Generate iOS platform folder if absent
+        run: flutter create --platforms=ios .
+      - name: Install dependencies
+        run: flutter pub get
+      - name: Analyze
+        run: flutter analyze
+      - name: Build iOS (no code signing)
+        run: flutter build ios --release --no-codesign
+      - name: Package Runner.app
+        run: cd build/ios/iphoneos && zip -r readl-ios-runner.zip Runner.app
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: readl-ios-runner
+          path: build/ios/iphoneos/readl-ios-runner.zip
