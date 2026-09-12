@@ -33,33 +33,46 @@ class HomeScreen extends ConsumerWidget {
                   Container(
                     width: 52,
                     height: 52,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: AppColors.primaryGreenLight,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(14),
+                      ),
                     ),
-                    child: const Icon(Icons.upload_file_rounded,
-                        color: AppColors.primaryGreen),
+                    child: const Icon(
+                      Icons.upload_file_rounded,
+                      color: AppColors.primaryGreen,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
-                        Text('Importer un PDF',
-                            style: TextStyle(fontWeight: FontWeight.w600)),
+                        Text(
+                          'Importer un PDF',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         SizedBox(height: 2),
                         Text(
                           'Ajoutez un document pour commencer à l\'écouter.',
                           style: TextStyle(
-                              color: AppColors.textSecondary, fontSize: 13),
+                            color: AppColors.textSecondary,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
                     onPressed: onImportPdf,
-                    icon: const Icon(Icons.arrow_forward_ios_rounded,
-                        size: 16, color: AppColors.textSecondary),
+                    icon: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 16,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                 ],
               ),
@@ -81,7 +94,8 @@ class HomeScreen extends ConsumerWidget {
           const _SectionTitle('Favoris'),
           const _EmptyState(
             icon: Icons.star_border_rounded,
-            message: 'Marquez des documents en favoris pour les retrouver ici.',
+            message:
+                'Marquez des documents en favoris pour les retrouver ici.',
           ),
           const SizedBox(height: 24),
           const _SectionTitle('Raccourcis'),
@@ -113,19 +127,27 @@ class HomeScreen extends ConsumerWidget {
 
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.title);
+
   final String title;
 
   @override
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
+      ),
     );
   }
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.icon, required this.message});
+  const _EmptyState({
+    required this.icon,
+    required this.message,
+  });
+
   final IconData icon;
   final String message;
 
@@ -133,19 +155,27 @@ class _EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(top: 10),
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      padding: const EdgeInsets.symmetric(
+        vertical: 20,
+        horizontal: 16,
+      ),
       decoration: BoxDecoration(
         color: AppColors.surfaceMuted,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
-          Icon(icon, color: AppColors.textSecondary),
+          Icon(
+            icon,
+            color: AppColors.textSecondary,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(color: AppColors.textSecondary),
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
         ],
@@ -175,9 +205,17 @@ class _ShortcutCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 18),
           child: Column(
             children: [
-              Icon(icon, color: AppColors.primaryGreen),
+              Icon(
+                icon,
+                color: AppColors.primaryGreen,
+              ),
               const SizedBox(height: 8),
-              Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
           ),
         ),
