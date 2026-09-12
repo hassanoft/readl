@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/errors/app_exception.dart';
@@ -34,7 +35,7 @@ class SupabaseAuthRepository implements AuthRepository {
         data: {'first_name': firstName},
       );
     } catch (error) {
-      throw AppException(describeError(error));
+      _fail('signUp', error);
     }
   }
 
@@ -46,7 +47,7 @@ class SupabaseAuthRepository implements AuthRepository {
     try {
       await _client.auth.signInWithPassword(email: email, password: password);
     } catch (error) {
-      throw AppException(describeError(error));
+      _fail('signIn', error);
     }
   }
 
@@ -55,7 +56,7 @@ class SupabaseAuthRepository implements AuthRepository {
     try {
       await _client.auth.resetPasswordForEmail(email);
     } catch (error) {
-      throw AppException(describeError(error));
+      _fail('sendPasswordResetEmail', error);
     }
   }
 
@@ -64,7 +65,19 @@ class SupabaseAuthRepository implements AuthRepository {
     try {
       await _client.auth.signOut();
     } catch (error) {
-      throw AppException(describeError(error));
+      _fail('signOut', error);
     }
+  }
+
+  /// Journalise l'erreur brute en mode debug (visible dans `flutter run` /
+  /// logcat) avant de la traduire en message français pour l'UI. Utile
+  /// pour diagnostiquer une mauvaise configuration Supabase (URL/clé
+  /// incorrecte, schéma non exécuté...) sans exposer de détails
+  /// techniques à l'utilisateur final.
+  Never _fail(String action, Object error) {
+    if (kDebugMode) {
+      debugPrint('[READL][Auth] $action a échoué → $error');
+    }
+    throw AppException(describeError(error));
   }
 }
