@@ -30,18 +30,20 @@ class HomeScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
-                  Container(
+                  const SizedBox(
                     width: 52,
                     height: 52,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryGreenLight,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(14),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryGreenLight,
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(14),
+                        ),
                       ),
-                    ),
-                    child: const Icon(
-                      Icons.upload_file_rounded,
-                      color: AppColors.primaryGreen,
+                      child: Icon(
+                        Icons.upload_file_rounded,
+                        color: AppColors.primaryGreen,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
