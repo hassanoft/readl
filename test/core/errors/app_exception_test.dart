@@ -25,7 +25,7 @@ void main() {
     });
 
     test('traduit une absence de réseau en français', () {
-      final error = SocketException('Failed host lookup');
+      const error = SocketException('Failed host lookup');
       expect(
         describeError(error),
         'Aucune connexion internet détectée. '
