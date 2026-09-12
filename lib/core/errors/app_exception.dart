@@ -67,6 +67,15 @@ String _describeAuthError(AuthException error) {
   if (message.contains('rate limit') || message.contains('too many')) {
     return 'Trop de tentatives. Veuillez patienter avant de réessayer.';
   }
+  if (message.contains('api key') || message.contains('apikey')) {
+    return 'Configuration Supabase invalide : vérifiez SUPABASE_URL et '
+        'SUPABASE_ANON_KEY (Project Settings → API).';
+  }
+  if (message.contains('database error')) {
+    return 'Erreur côté base de données lors de la création du compte. '
+        'Vérifiez que supabase/schema.sql a bien été exécuté sur votre '
+        'projet Supabase.';
+  }
 
   return 'Impossible de vous authentifier pour le moment. Réessayez.';
 }
