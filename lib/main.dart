@@ -26,31 +26,39 @@ class _MissingConfigApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: AppColors.background,
         body: Center(
           child: Padding(
-            padding: const EdgeInsets.all(32),
+            padding: EdgeInsets.all(32),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.settings_suggest_outlined,
-                    size: 48, color: AppColors.error),
-                const SizedBox(height: 16),
-                const Text(
+                Icon(
+                  Icons.settings_suggest_outlined,
+                  size: 48,
+                  color: AppColors.error,
+                ),
+                SizedBox(height: 16),
+                Text(
                   'Configuration manquante',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 12),
-                const Text(
+                SizedBox(height: 12),
+                Text(
                   'SUPABASE_URL et SUPABASE_ANON_KEY doivent être fournis '
                   'via --dart-define au lancement. Voir .env.example et '
                   'le README.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: AppColors.textSecondary),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
