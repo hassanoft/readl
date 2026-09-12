@@ -44,7 +44,9 @@ class LibraryController extends ChangeNotifier {
       final decoded = jsonDecode(raw);
 
       if (decoded is! List) {
-        throw const FormatException('Bibliothèque invalide.');
+        throw const FormatException(
+          'Bibliothèque invalide.',
+        );
       }
 
       _documents
@@ -79,11 +81,12 @@ class LibraryController extends ChangeNotifier {
         allowedExtensions: ['pdf'],
       );
 
-      if (result == null || result.files.isEmpty) {
+      // FilePicker retourne directement une liste de PlatformFile.
+      if (result.isEmpty) {
         return null;
       }
 
-      final picked = result.files.single;
+      final picked = result.first;
       final sourcePath = picked.path;
 
       if (sourcePath == null || sourcePath.isEmpty) {
@@ -98,7 +101,7 @@ class LibraryController extends ChangeNotifier {
 
       await pdfDir.create(recursive: true);
 
-      final id = '${DateTime.now().microsecondsSinceEpoch}';
+      final id = DateTime.now().microsecondsSinceEpoch.toString();
 
       final destination = File(
         '${pdfDir.path}/$id.pdf',
@@ -142,7 +145,7 @@ class LibraryController extends ChangeNotifier {
         );
 
         _documents.removeWhere(
-          (d) => d.name == doc.name && d.path == doc.path,
+          (d) => d.id == doc.id,
         );
 
         _documents.insert(0, doc);
