@@ -10,15 +10,24 @@ import '../../../core/theme/app_colors.dart';
 
 class _OnboardingPage {
   const _OnboardingPage(this.title, this.icon);
+
   final String title;
   final IconData icon;
 }
 
 const _pages = [
-  _OnboardingPage('Transformez vos PDF en audio', Icons.graphic_eq_rounded),
   _OnboardingPage(
-      'Écoutez vos documents où que vous soyez', Icons.headphones_rounded),
-  _OnboardingPage('Apprenez plus facilement avec READL', Icons.school_rounded),
+    'Transformez vos PDF en audio',
+    Icons.graphic_eq_rounded,
+  ),
+  _OnboardingPage(
+    'Écoutez vos documents où que vous soyez',
+    Icons.headphones_rounded,
+  ),
+  _OnboardingPage(
+    'Apprenez plus facilement avec READL',
+    Icons.school_rounded,
+  ),
 ];
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -41,10 +50,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Future<void> _finishOnboarding() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(StorageKeys.hasSeenOnboarding, true);
-    if (!mounted) return;
+
+    if (!mounted) {
+      return;
+    }
 
     final session = ref.read(authRepositoryProvider).currentSession;
-    context.go(session != null ? AppRoutes.home : AppRoutes.login);
+    context.go(
+      session != null ? AppRoutes.home : AppRoutes.login,
+    );
   }
 
   @override
@@ -70,18 +84,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: PageView.builder(
                 controller: _pageController,
                 itemCount: _pages.length,
-                onPageChanged: (value) => setState(() => _index = value),
+                onPageChanged: (value) {
+                  setState(() => _index = value);
+                },
                 itemBuilder: (context, i) {
                   final page = _pages[i];
+
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
                           width: 140,
                           height: 140,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.primaryGreenLight,
                             shape: BoxShape.circle,
                           ),
@@ -109,21 +128,25 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_pages.length, (i) {
-                final active = i == _index;
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: active ? 22 : 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: active
-                        ? AppColors.primaryGreen
-                        : AppColors.primaryGreenLight,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                );
-              }),
+              children: List.generate(
+                _pages.length,
+                (i) {
+                  final active = i == _index;
+
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: active ? 22 : 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: active
+                          ? AppColors.primaryGreen
+                          : AppColors.primaryGreenLight,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  );
+                },
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(24),
@@ -140,7 +163,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       );
                     }
                   },
-                  child: Text(isLastPage ? 'Commencer' : 'Suivant'),
+                  child: Text(
+                    isLastPage ? 'Commencer' : 'Suivant',
+                  ),
                 ),
               ),
             ),
