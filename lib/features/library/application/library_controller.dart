@@ -57,7 +57,6 @@ class LibraryController extends ChangeNotifier {
               .map(PdfDocumentModel.fromJson),
         );
 
-      // Supprime les fichiers qui n'existent plus sur l'appareil.
       _documents.removeWhere(
         (doc) => !File(doc.path).existsSync(),
       );
@@ -78,7 +77,9 @@ class LibraryController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final picked = await FilePicker.platform.pickFile(
+      final picker = FilePicker();
+
+      final picked = await picker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
         withData: false,
@@ -142,6 +143,7 @@ class LibraryController extends ChangeNotifier {
           size: await copied.length(),
           pageCount: pageCount,
           text: buffer.toString().trim(),
+          createdAt: DateTime.now(),
         );
 
         _documents.removeWhere(
