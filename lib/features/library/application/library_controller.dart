@@ -24,12 +24,10 @@ class LibraryController extends ChangeNotifier {
 
   String? get error => _error;
 
-  /// Initialise et restaure la bibliothèque locale.
   Future<void> init() async {
     await load();
   }
 
-  /// Restaure les PDF enregistrés localement.
   Future<void> load() async {
     _loading = true;
     _error = null;
@@ -70,28 +68,25 @@ class LibraryController extends ChangeNotifier {
     }
   }
 
-  /// Importe un fichier PDF depuis l'appareil.
   Future<PdfDocumentModel?> importPdf() async {
     _error = null;
     _loading = true;
     notifyListeners();
 
     try {
-      final picker = FilePicker();
-
-      final picked = await picker.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
-        withData: false,
       );
 
-      if (picked == null) {
+      if (result == null || result.files.isEmpty) {
         return null;
       }
 
+      final picked = result.files.single;
       final sourcePath = picked.path;
 
-      if (sourcePath == null) {
+      if (sourcePath == null || sourcePath.isEmpty) {
         throw Exception('Fichier inaccessible.');
       }
 
@@ -167,7 +162,6 @@ class LibraryController extends ChangeNotifier {
     }
   }
 
-  /// Met à jour la dernière page consultée.
   Future<void> updateProgress(
     String id,
     int page,
@@ -195,7 +189,6 @@ class LibraryController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Met à jour la page de lecture.
   Future<void> update(
     String id,
     int page,
@@ -203,7 +196,6 @@ class LibraryController extends ChangeNotifier {
     await updateProgress(id, page);
   }
 
-  /// Ajoute ou retire un PDF des favoris.
   Future<void> toggleFavorite(String id) async {
     final index = _documents.indexWhere(
       (d) => d.id == id,
@@ -223,7 +215,6 @@ class LibraryController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Supprime un PDF de la bibliothèque.
   Future<void> delete(String id) async {
     final index = _documents.indexWhere(
       (d) => d.id == id,
@@ -245,7 +236,6 @@ class LibraryController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Recherche un document par son identifiant.
   PdfDocumentModel? getById(String id) {
     for (final document in _documents) {
       if (document.id == id) {
@@ -256,12 +246,10 @@ class LibraryController extends ChangeNotifier {
     return null;
   }
 
-  /// Retourne le texte extrait d'un document.
   String readText(String id) {
     return getById(id)?.text ?? '';
   }
 
-  /// Efface l'erreur actuelle.
   void clearError() {
     if (_error == null) {
       return;
