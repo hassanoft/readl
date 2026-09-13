@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/storage_keys.dart';
-import '../../../core/providers/core_providers.dart';
 import '../../../core/theme/app_colors.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
@@ -49,8 +48,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       return;
     }
 
-    final session = ref.read(authRepositoryProvider).currentSession;
-    context.go(session != null ? AppRoutes.home : AppRoutes.login);
+    // READL est utilisable sans compte (mode invité) : direction
+    // l'accueil dans tous les cas, connecté ou non.
+    context.go(AppRoutes.home);
   }
 
   @override
